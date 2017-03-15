@@ -1,0 +1,45 @@
+//This code works on Istanbul
+var body={};
+//Gliderecord to sys attachment table to get all attachment records in the  record in this case incident.
+var gr=new GlideRecord('sys_attachment');
+	
+	//query using the sys_id of the incident obtained as a path param.
+	gr.addQuery('table_sys_id',request.pathParams.sys_id);
+	gr.query();
+var alist=[];//list to get the attachment contents as Base64 String
+var names="";//String to get the names
+var i=0;
+	var fres=[];//array to store objects with content and file name
+//instance of GlideSysAttachment available in scoped app with some methods.
+var attachment = new GlideSysAttachment();
+while(gr.next())
+{
+var fileBytes = attachment.getContentBase64(gr);//retrieves the content as a base64 String taking the record of each attachment in the incident record.
+//
+
+//gs.info(fileBytes);
+     //getting the file name of each attachment separating with comma.           
+	names=names+gr.file_name+',';
+  //push content of attachment into Array
+alist.push(fileBytes);
+//gs.info(gr.file_name);
+//push an object into the array
+	fres.push({attachment:fileBytes});
+}
+	//gs.info(fres);
+//gs.info(alist+'otro');
+	var rnames=names.slice(0,names.length-1);
+rnames=rnames.split(',');
+//setting body attachments to fres
+	body.attachments=fres;
+	//body.attachments=alist;
+	//body.names=rnames;
+  //setting each attachment name on each corresponding object
+	for(var s=0;s<rnames.length;s++)
+		{
+			fres[s].name=rnames[s];
+		}
+    //setting response body.
+	response.setBody(body);
+	//return the response
+		return body;
